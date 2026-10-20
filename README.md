@@ -6,7 +6,8 @@
 1. Go to https://www.python.org/downloads/ and download Python 3.
 2. Run the installer and **tick "Add python.exe to PATH"** at the bottom, then click Install Now.
 3. Unzip `max-chain.zip` somewhere, like your Desktop.
-4. **Desktop app (easiest):** double-click `run_gui.bat`. A MAX window opens with tabs for Wallets, Send, Mine, Blockchain and Leaderboard.
+4. **MAX app (easiest, new!):** double-click `run_app.bat`. Your web browser opens the MAX app at `http://127.0.0.1:8765`, with Dashboard, Wallets, Send, Mine, Explorer, Leaderboard and Stats pages. It runs only on your computer and needs no internet. Keep the black window open while you play; close it to stop the app.
+   - Prefer the old simple window? Double-click `run_gui.bat` (classic app, `max_gui_classic.py`).
 5. **Demo:** double-click `run_demo.bat`. It runs a quick demo using the practice password `demo1234` (only for the demo!).
 6. **Do it yourself:** open PowerShell or Command Prompt and type:
    ```
@@ -43,6 +44,16 @@
 | `explorer` | Local web page to look at the chain |
 
 Run `python max.py stats` to see the difficulty and when it changes next. Want to start over? Delete `chain.json` and the `wallets` folder.
+
+## 🖥️ The MAX app
+- **Dashboard:** total MAX mined, block height, difficulty, average block time, next speed check, recent blocks and top miners.
+- **Wallets:** wallet cards with balances. Copy your address, make or import wallets, and see your private key (only after typing your password).
+- **Send:** pick a wallet, type a name or address and an amount, and enter your password.
+- **Mine:** press the big button. Turn on **Auto-mine** to keep mining block after block. Press it again to stop.
+- **Explorer:** click a block to see its payments. Press **Validate** to check nobody cheated.
+- **Leaderboard** with 🥇🥈🥉 medals, and **Stats** explaining the rules.
+- Your password is only used for that one action. It's never saved or written to a log, and the app only listens on your own computer (`127.0.0.1`).
+- Port busy? Run `set MAX_PORT=8800` first, then `python max_app.py`.
 
 ## ⚙️ Changing the speed rules (optional)
 These are only used when a **brand-new chain** is made (they're saved in the first block):

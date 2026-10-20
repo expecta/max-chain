@@ -2,3 +2,4 @@ wallets/
 chain.json
 __pycache__/
 *.pyc
+chain.json.tmp

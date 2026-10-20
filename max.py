@@ -120,7 +120,7 @@ def stats(d):
     return {"height": nxt - 1, "current": c[-1]["difficulty"], "next": expected_difficulty(c, nxt),
             "target": target, "every": n, "next_retarget": nr, "blocks_left": nr - nxt, "avg": avg}
 
-def mine_block(index, txs, prev, difficulty, extra=None):
+def mine_block(index, txs, prev, difficulty, extra=None, progress=None):
     b = {"index": index, "time": time.time(), "txs": txs, "prev": prev, "nonce": 0, "difficulty": difficulty}
     if extra: b.update(extra)
     want = "0" * difficulty
@@ -128,6 +128,7 @@ def mine_block(index, txs, prev, difficulty, extra=None):
         h = block_hash(b)
         if h.startswith(want): b["hash"] = h; return b
         b["nonce"] += 1
+        if progress and b["nonce"] % 20000 == 0: progress(b["nonce"])  # may raise to stop
 
 def load():
     if os.path.exists(CHAIN_FILE):
@@ -140,7 +141,8 @@ def load():
     data = {"chain": [g], "pending": []}  # genesis block
     save(data); return data
 
-def save(d): json.dump(d, open(CHAIN_FILE, "w"), indent=2)
+def save(d):
+    tmp = CHAIN_FILE + ".tmp"; json.dump(d, open(tmp, "w"), indent=2); os.replace(tmp, CHAIN_FILE)
 
 def balance(d, addr, include_pending=True):
     bal = 0
@@ -178,11 +180,18 @@ def send(from_name, password, to, amount):
     if have < amount: raise MaxError(f"Not enough MAX! {from_name} has {have}.")
     tx = sign_tx(w, to, amount); d["pending"].append(tx); save(d); return tx
 
-def mine(miner_name):
+def mine(miner_name, progress=None):
     w = load_wallet(miner_name); d = load()
-    txs = [t for t in d["pending"] if verify_tx(t)] + [{"sender": "REWARD", "to": w["address"], "amount": REWARD, "time": time.time(), "signature": ""}]
-    b = mine_block(len(d["chain"]), txs, d["chain"][-1]["hash"], expected_difficulty(d["chain"], len(d["chain"])))
-    d["chain"].append(b); d["pending"] = []; save(d); return b
+    pend = [t for t in d["pending"] if verify_tx(t)]
+    txs = pend + [{"sender": "REWARD", "to": w["address"], "amount": REWARD, "time": time.time(), "signature": ""}]
+    b = mine_block(len(d["chain"]), txs, d["chain"][-1]["hash"], expected_difficulty(d["chain"], len(d["chain"])), progress=progress)
+    d2 = load()  # re-read: someone may have sent while we mined
+    if d2["chain"][-1]["hash"] != b["prev"]: raise MaxError("Someone else added a block first. Try again!")
+    done = {t["signature"] for t in pend}
+    d2["chain"].append(b); d2["pending"] = [t for t in d2["pending"] if t["signature"] not in done]
+    save(d2); return b
+
+def total_supply(d): return sum(t["amount"] for b in d["chain"] for t in b["txs"] if t["sender"] == "REWARD")
 
 # ---------- leaderboard ----------
 MEDALS = ["\U0001F947", "\U0001F948", "\U0001F949"]

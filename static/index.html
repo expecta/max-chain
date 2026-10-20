@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MAX Chain</title><link rel="icon" href="/logo.jpg" type="image/jpeg">
+<style>
+:root{--bg:#060b1d;--bg2:#0b1430;--card:#101c3f;--card2:#14234d;--line:#1f3166;--gold:#f2b53a;--gold2:#ffd77a;--blue:#2f8cff;--blue2:#5cc8ff;--txt:#e9eefc;--mut:#8a98c4;--ok:#3ddc97;--bad:#ff5d73;--r:16px}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:radial-gradient(1200px 600px at 80% -10%,#13306e55,transparent),radial-gradient(900px 500px at -10% 110%,#3a2a0a55,transparent),var(--bg);color:var(--txt);display:flex}
+a{color:var(--blue2)}
+/* sidebar */
+nav{width:230px;flex-shrink:0;background:linear-gradient(180deg,#0a1330,#070d22);border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:4px;height:100vh;position:sticky;top:0}
+.brand{font-weight:800;font-size:26px;letter-spacing:2px;padding:4px 12px 22px;background:linear-gradient(90deg,var(--gold),var(--gold2) 45%,var(--blue2) 55%,var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{display:block;font-size:11px;letter-spacing:.5px;font-weight:500;color:var(--mut);-webkit-text-fill-color:var(--mut)}
+nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--mut);text-decoration:none;font-weight:600;transition:.2s}
+nav a:hover{background:#ffffff08;color:var(--txt)}
+nav a.on{background:linear-gradient(90deg,#2f8cff26,#f2b53a14);color:var(--txt);box-shadow:inset 3px 0 0 var(--gold)}
+nav .ico{width:22px;text-align:center}
+nav .foot{margin-top:auto;font-size:11px;color:var(--mut);padding:10px 12px;line-height:1.5}
+/* main */
+main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--line);background:#060b1dcc;backdrop-filter:blur(8px);position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:22px}header .sub{color:var(--mut);font-size:13px;margin-top:2px}
+.hright{display:flex;align-items:center;gap:14px}
+.pill{font-size:12px;padding:6px 12px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--mut)}
+.pill.live{color:var(--gold2);border-color:#f2b53a66;animation:glow 1.6s infinite}
+.logo{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);box-shadow:0 0 18px #2f8cff55,0 0 6px #f2b53a66;transition:transform .6s}
+.logo:hover{transform:rotate(360deg)}
+.logo.spin{animation:spin 1.2s linear infinite}
+section{display:none;padding:28px 32px 48px;animation:fade .35s ease}
+section.on{display:block}
+.grid{display:grid;gap:18px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1.3fr 1fr}
+.card{background:linear-gradient(160deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:20px;transition:transform .2s,border-color .2s}
+.card:hover{border-color:#2f8cff66}
+.stat .k{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.stat .v{font-size:30px;font-weight:800;margin-top:6px}.stat .s{color:var(--mut);font-size:12px;margin-top:4px}
+.gold{color:var(--gold2)}.blue{color:var(--blue2)}
+h2{font-size:16px;margin:0 0 14px;color:var(--txt)}
+.bar{height:8px;background:#ffffff10;border-radius:9px;overflow:hidden;margin-top:10px}.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--blue));border-radius:9px;transition:width .5s}
+table{width:100%;border-collapse:collapse}th{text-align:left;font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.8px;padding:10px}td{padding:12px 10px;border-top:1px solid var(--line);font-size:14px}
+.mono{font-family:Consolas,"Cascadia Mono",monospace;font-size:12.5px;color:var(--blue2)}
+.btn{border:0;border-radius:12px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer;color:#1a1200;background:linear-gradient(135deg,var(--gold2),var(--gold));transition:.2s;box-shadow:0 4px 18px #f2b53a33}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.08)}.btn:disabled{opacity:.5;cursor:default;transform:none}
+.btn.blue{color:#fff;background:linear-gradient(135deg,var(--blue2),var(--blue));box-shadow:0 4px 18px #2f8cff44}
+.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line);box-shadow:none}.btn.ghost:hover{border-color:var(--blue)}
+.btn.sm{padding:7px 12px;font-size:12px;border-radius:10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.wcard{position:relative;overflow:hidden}
+.wcard:before{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(#2f8cff33,transparent 70%)}
+.wcard .name{font-size:18px;font-weight:700}.wcard .bal{font-size:32px;font-weight:800;margin:10px 0 2px;color:var(--gold2)}
+.wcard .addr{word-break:break-all;margin:10px 0 14px}
+label{display:block;font-size:13px;color:var(--mut);margin:14px 0 6px}
+input,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#081129;color:var(--txt);font-size:14px;outline:none;transition:.2s}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33}
+.err{color:var(--bad);font-size:13px;min-height:18px;margin-top:8px}
+/* mine */
+.minewrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px}
+.minebtn{width:210px;height:210px;border-radius:50%;border:0;cursor:pointer;font-size:24px;font-weight:800;color:#1a1200;background:radial-gradient(circle at 35% 30%,var(--gold2),var(--gold) 55%,#b9821c);box-shadow:0 0 0 10px #f2b53a1a,0 0 60px #f2b53a55;transition:.25s}
+.minebtn:hover{transform:scale(1.04)}.minebtn.busy{background:radial-gradient(circle at 35% 30%,var(--blue2),var(--blue) 60%,#1550a8);color:#fff;box-shadow:0 0 0 10px #2f8cff22,0 0 70px #2f8cff88;animation:pulse 1.2s infinite}
+.minebtn .em{font-size:52px;display:block}
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;color:var(--mut);font-size:14px}
+.switch input{display:none}.switch i{width:46px;height:26px;border-radius:99px;background:#ffffff1a;position:relative;transition:.2s}
+.switch i:after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+i{background:var(--blue)}.switch input:checked+i:after{left:23px}
+/* explorer */
+.blk{border:1px solid var(--line);border-radius:14px;margin-bottom:10px;background:var(--card);overflow:hidden}
+.blk .hd{display:flex;gap:16px;align-items:center;padding:14px 18px;cursor:pointer}
+.blk .hd:hover{background:#ffffff06}.blk .num{font-weight:800;color:var(--gold2);min-width:60px}
+.blk .bd{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 18px}
+.blk.open .bd{max-height:900px;padding-bottom:16px}
+.tag{font-size:11px;padding:3px 9px;border-radius:99px;background:#2f8cff22;color:var(--blue2)}
+.tag.g{background:#f2b53a22;color:var(--gold2)}
+.medal{font-size:22px}
+/* modal + toast */
+.modal{position:fixed;inset:0;background:#02051099;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:20}
+.modal.on{display:flex;animation:fade .2s}
+.modal .box{width:min(460px,92vw);background:linear-gradient(160deg,var(--card2),var(--bg2));border:1px solid var(--line);border-radius:20px;padding:26px;animation:pop .25s ease}
+.modal h3{margin:0 0 6px}.warn{background:#ff5d7318;border:1px solid #ff5d7355;color:#ffc2cb;padding:12px;border-radius:12px;font-size:13px;margin:12px 0}
+.keybox{word-break:break-all;background:#081129;border:1px dashed var(--gold);padding:12px;border-radius:12px;margin-top:10px}
+#toasts{position:fixed;right:24px;bottom:24px;display:flex;flex-direction:column;gap:10px;z-index:30}
+.toast{background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--ok);padding:12px 16px;border-radius:12px;min-width:240px;box-shadow:0 10px 30px #0008;animation:slide .3s ease}
+.toast.bad{border-left-color:var(--bad)}
+.empty{color:var(--mut);text-align:center;padding:30px}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes slide{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+@keyframes pulse{50%{box-shadow:0 0 0 18px #2f8cff11,0 0 90px #2f8cffaa}}
+@keyframes glow{50%{box-shadow:0 0 12px #f2b53a66}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:1000px){.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+@media(max-width:720px){body{flex-direction:column}nav{width:100%;height:auto;position:static;flex-direction:row;overflow-x:auto;padding:10px}.brand,nav .foot{display:none}nav a{white-space:nowrap}main{height:auto}header{padding:14px 18px}section{padding:18px}.g4{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<nav>
+  <div class="brand">MAX<small>learning blockchain</small></div>
+  <a href="#dashboard" data-p="dashboard"><span class="ico">◆</span>Dashboard</a>
+  <a href="#wallets" data-p="wallets"><span class="ico">👛</span>Wallets</a>
+  <a href="#send" data-p="send"><span class="ico">➤</span>Send</a>
+  <a href="#mine" data-p="mine"><span class="ico">⛏</span>Mine</a>
+  <a href="#explorer" data-p="explorer"><span class="ico">⛓</span>Explorer</a>
+  <a href="#leaderboard" data-p="leaderboard"><span class="ico">🏆</span>Leaderboard</a>
+  <a href="#stats" data-p="stats"><span class="ico">⚙</span>Stats</a>
+  <div class="foot">MAX is a learning project.<br>It is <b>not real money</b> and only lives on this computer.</div>
+</nav>
+<main>
+<header><div><h1 id="title">Dashboard</h1><div class="sub" id="subtitle"></div></div>
+  <div class="hright"><span class="pill" id="minepill">Idle</span><img src="/logo.jpg" class="logo" id="logo" alt="MAX logo"></div></header>
+
+<section id="p-dashboard">
+  <div class="grid g4">
+    <div class="card stat"><div class="k">Total supply</div><div class="v gold" id="d-supply">–</div><div class="s">MAX ever mined</div></div>
+    <div class="card stat"><div class="k">Block height</div><div class="v" id="d-height">–</div><div class="s" id="d-pending"></div></div>
+    <div class="card stat"><div class="k">Difficulty</div><div class="v blue" id="d-diff">–</div><div class="s" id="d-diffs"></div></div>
+    <div class="card stat"><div class="k">Avg block time</div><div class="v" id="d-avg">–</div><div class="s" id="d-target"></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><h2>Recent blocks</h2><table><thead><tr><th>#</th><th>Hash</th><th>Diff</th><th>Txs</th><th>When</th></tr></thead><tbody id="d-recent"></tbody></table></div>
+    <div class="card"><h2>Next retarget</h2><div class="stat"><div class="v" id="d-rt">–</div><div class="s" id="d-rts"></div></div><div class="bar"><i id="d-rtbar" style="width:0"></i></div>
+      <h2 style="margin-top:26px">Top miners</h2><div id="d-top"></div>
+      <div class="row" style="margin-top:20px"><a class="btn" href="#mine">⛏ Start mining</a><a class="btn ghost" href="#send">Send MAX</a></div></div>
+  </div>
+</section>
+
+<section id="p-wallets">
+  <div class="row" style="margin-bottom:18px"><button class="btn" onclick="openModal('m-new')">＋ New wallet</button><button class="btn ghost" onclick="openModal('m-import')">Import from key</button></div>
+  <div class="grid g3" id="w-list"></div>
+</section>
+
+<section id="p-send">
+  <div class="grid g2"><div class="card">
+    <h2>Send MAX</h2>
+    <label>From wallet</label><select id="s-from"></select>
+    <label>To (wallet name or 64-character address)</label><input id="s-to" placeholder="bob or 3f9a…" list="s-names"><datalist id="s-names"></datalist>
+    <label>Amount</label><input id="s-amt" type="number" min="1" step="1" placeholder="10">
+    <label>Wallet password</label><input id="s-pw" type="password" autocomplete="off">
+    <div class="err" id="s-err"></div>
+    <button class="btn blue" id="s-btn" onclick="doSend()">Send ➤</button>
+  </div><div class="card"><h2>Waiting to be mined</h2><div id="s-pending"></div>
+    <p style="color:var(--mut);font-size:13px">Payments wait in line until someone mines the next block. Then they're locked into the chain forever.</p></div></div>
+</section>
+
+<section id="p-mine">
+  <div class="grid g2"><div class="card minewrap">
+    <button class="minebtn" id="m-btn" onclick="toggleMine()"><span class="em">⛏</span><span id="m-btntxt">MINE</span></button>
+    <div style="margin-top:22px;font-size:18px;font-weight:700" id="m-status">Ready to mine</div>
+    <div style="color:var(--mut);margin-top:6px" id="m-sub">Each block pays a reward of 50 MAX</div>
+    <div class="row" style="margin-top:22px;justify-content:center"><div style="width:220px"><select id="m-wallet"></select></div>
+      <label class="switch"><input type="checkbox" id="m-auto" onchange="autoChanged()"><i></i>Auto-mine</label></div>
+  </div><div class="card"><h2>Mining info</h2>
+    <table><tbody>
+    <tr><td>Difficulty (next block)</td><td class="blue" id="mi-diff">–</td></tr>
+    <tr><td>Guesses this block</td><td id="mi-nonce">–</td></tr>
+    <tr><td>Time on this block</td><td id="mi-time">–</td></tr>
+    <tr><td>Target block time</td><td id="mi-target">–</td></tr>
+    <tr><td>Next retarget</td><td id="mi-rt">–</td></tr>
+    <tr><td>Blocks mined this session</td><td id="mi-count">0</td></tr>
+    <tr><td>Last block</td><td id="mi-last">–</td></tr></tbody></table>
+    <p style="color:var(--mut);font-size:13px">Mining = guessing numbers until the block's fingerprint (hash) starts with enough zeros. More zeros = harder puzzle.</p></div></div>
+</section>
+
+<section id="p-explorer">
+  <div class="row" style="margin-bottom:16px"><button class="btn blue" onclick="doValidate()">✓ Validate chain</button><span id="x-valid" style="font-weight:700"></span></div>
+  <div id="x-list"></div>
+</section>
+
+<section id="p-leaderboard"><div class="card"><table><thead><tr><th>Rank</th><th>Name</th><th>Address</th><th>Balance</th><th>Blocks mined</th></tr></thead><tbody id="l-body"></tbody></table></div></section>
+
+<section id="p-stats">
+  <div class="grid g3">
+    <div class="card stat"><div class="k">Target block time</div><div class="v" id="t-target">–</div><div class="s">Max tries to make one block this often</div></div>
+    <div class="card stat"><div class="k">Retarget every</div><div class="v" id="t-every">–</div><div class="s">blocks, the speed check happens</div></div>
+    <div class="card stat"><div class="k">Difficulty range</div><div class="v" id="t-range">–</div><div class="s">±1 per retarget</div></div>
+  </div>
+  <div class="card" style="margin-top:18px"><h2>How difficulty works</h2>
+    <p style="color:var(--mut);line-height:1.7">Every few blocks, Max checks how fast blocks were made. Way too fast (less than half the target time)? The puzzle gets one zero harder. Way too slow (more than double)? One zero easier. These rules are saved in the very first block, and the validator checks every block follows them, so nobody can cheat.</p>
+    <p style="color:var(--mut);line-height:1.7">Rules for a new chain can be changed with <span class="mono">MAX_TARGET</span>, <span class="mono">MAX_RETARGET</span> and <span class="mono">MAX_DIFFICULTY</span> before the first start.</p>
+    <div class="warn">MAX is a learning project. It is not a real cryptocurrency, has no value and can't be traded.</div></div>
+</section>
+</main>
+
+<!-- modals -->
+<div class="modal" id="m-new"><div class="box"><h3>Create a wallet</h3><div style="color:var(--mut);font-size:13px">Your wallet gets a secret key, locked with your password.</div>
+  <label>Wallet name</label><input id="n-name" placeholder="e.g. max">
+  <label>Password (at least 4 characters)</label><input id="n-pw" type="password" autocomplete="new-password">
+  <label>Type it again</label><input id="n-pw2" type="password" autocomplete="new-password">
+  <div class="warn">If you forget the password, the wallet can't be unlocked. Write your private key on paper and keep it safe.</div>
+  <div class="err" id="n-err"></div><div class="row"><button class="btn" onclick="doNew()">Create</button><button class="btn ghost" onclick="closeModals()">Cancel</button></div></div></div>
+<div class="modal" id="m-import"><div class="box"><h3>Import a wallet</h3>
+  <label>Wallet name</label><input id="i-name">
+  <label>Private key</label><input id="i-key" type="password" autocomplete="off" placeholder="64 hex characters">
+  <label>New password</label><input id="i-pw" type="password" autocomplete="new-password">
+  <label>Type it again</label><input id="i-pw2" type="password" autocomplete="new-password">
+  <div class="err" id="i-err"></div><div class="row"><button class="btn" onclick="doImport()">Import</button><button class="btn ghost" onclick="closeModals()">Cancel</button></div></div></div>
+<div class="modal" id="m-reveal"><div class="box"><h3>🔒 Reveal private key</h3>
+  <div class="warn"><b>Never share your private key.</b> Anyone who has it controls this wallet. Nobody honest will ever ask for it.</div>
+  <div id="r-ask"><label>Password for <b id="r-name"></b></label><input id="r-pw" type="password" autocomplete="off">
+  <div class="err" id="r-err"></div><div class="row"><button class="btn" onclick="doReveal()">Show key</button><button class="btn ghost" onclick="closeModals()">Cancel</button></div></div>
+  <div id="r-show" style="display:none"><div class="keybox mono" id="r-key"></div><div class="row" style="margin-top:14px"><button class="btn ghost" onclick="copy(document.getElementById('r-key').textContent,'Key copied. Keep it secret!')">Copy</button><button class="btn" onclick="closeModals()">Done</button></div></div></div></div>
+<div id="toasts"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const short=a=>a.length>20?a.slice(0,10)+"…"+a.slice(-6):a;
+const ago=t=>{const s=Math.max(0,Date.now()/1000-t);return s<60?Math.floor(s)+"s ago":s<3600?Math.floor(s/60)+"m ago":Math.floor(s/3600)+"h ago"};
+const MED=["🥇","🥈","🥉"];
+const TITLES={dashboard:["Dashboard","Your Max chain at a glance"],wallets:["Wallets","Your password-locked wallets"],send:["Send","Pay MAX to anyone"],mine:["Mine","Solve puzzles, earn 50 MAX per block"],explorer:["Explorer","Every block ever made"],leaderboard:["Leaderboard","Who has the most MAX?"],stats:["Stats & Settings","How the chain works"]};
+let S=null,page="dashboard",revealName=null,lastBlock=null;
+function toast(msg,bad){const t=document.createElement("div");t.className="toast"+(bad?" bad":"");t.textContent=msg;$("toasts").appendChild(t);setTimeout(()=>{t.style.transition=".4s";t.style.opacity=0;setTimeout(()=>t.remove(),400)},3500)}
+async function api(path,body){const r=await fetch(path,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{});const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||"Request failed");return j}
+function copy(t,msg){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(msg||"Copied!")).catch(()=>{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove();toast(msg||"Copied!")})}
+function openModal(id){document.querySelectorAll(".modal input").forEach(i=>i.value="");document.querySelectorAll(".modal .err").forEach(e=>e.textContent="");$(id).classList.add("on");const f=$(id).querySelector("input");if(f)setTimeout(()=>f.focus(),50)}
+function closeModals(){document.querySelectorAll(".modal").forEach(m=>m.classList.remove("on"));$("r-key").textContent="";document.querySelectorAll(".modal input[type=password]").forEach(i=>i.value="")}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModals()});
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModals()}));
+function route(){page=(location.hash||"#dashboard").slice(1);if(!TITLES[page])page="dashboard";document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id==="p-"+page));document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.p===page));$("title").textContent=TITLES[page][0];$("subtitle").textContent=TITLES[page][1];if(page==="explorer")loadChain();render()}
+window.addEventListener("hashchange",route);
+function fillSelect(sel,names){const v=sel.value;sel.innerHTML=names.length?names.map(n=>`<option>${esc(n)}</option>`).join(""):"<option value=''>No wallets yet</option>";if(names.includes(v))sel.value=v}
+function render(){if(!S)return;const st=S.stats,m=S.miner,names=S.wallets.map(w=>w.name);
+  $("d-supply").textContent=S.supply.toLocaleString();$("d-height").textContent=st.height;$("d-pending").textContent=S.pending.length+" payment(s) waiting";
+  $("d-diff").textContent=st.current;$("d-diffs").textContent=st.next!==st.current?"next block: "+st.next:"zeros needed per hash";
+  $("d-avg").textContent=st.avg==null?"–":st.avg.toFixed(1)+"s";$("d-target").textContent="target "+st.target+"s";
+  $("d-rt").textContent="#"+st.next_retarget;$("d-rts").textContent=st.blocks_left+" blocks to go (every "+st.every+")";$("d-rtbar").style.width=(100*(st.every-st.blocks_left)/st.every)+"%";
+  $("d-recent").innerHTML=S.recent.map(b=>`<tr><td class="gold"><b>#${b.index}</b></td><td class="mono">${esc(short(b.hash))}</td><td><span class="tag">${b.difficulty}</span></td><td>${b.txs.length}</td><td style="color:var(--mut)">${ago(b.time)}</td></tr>`).join("");
+  $("d-top").innerHTML=S.leaderboard.slice(0,3).map((r,i)=>`<div class="row" style="justify-content:space-between;padding:6px 0"><span><span class="medal">${MED[i]}</span> ${esc(r.name)}</span><b class="gold">${r.balance} MAX</b></div>`).join("")||`<div class="empty">No miners yet</div>`;
+  $("w-list").innerHTML=S.wallets.map(w=>`<div class="card wcard"><div class="name">👛 ${esc(w.name)}</div><div class="bal">${w.balance} <span style="font-size:16px">MAX</span></div><div style="color:var(--mut);font-size:12px">${w.pending!==w.balance?"incl. pending: "+w.pending+" MAX":"confirmed balance"}</div><div class="addr mono">${esc(w.address)}</div><div class="row"><button class="btn sm blue" data-copy="${esc(w.address)}">Copy address</button><button class="btn sm ghost" data-reveal="${esc(w.name)}">🔒 Private key</button></div></div>`).join("")||`<div class="card empty">No wallets yet. Create one to get started!</div>`;
+  fillSelect($("s-from"),names);fillSelect($("m-wallet"),names);$("s-names").innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("");
+  $("s-pending").innerHTML=S.pending.length?`<table>${S.pending.map(t=>`<tr><td>${esc(t.from)} → ${esc(t.to)}</td><td class="gold"><b>${t.amount} MAX</b></td></tr>`).join("")}</table>`:`<div class="empty">Nothing waiting</div>`;
+  $("l-body").innerHTML=S.leaderboard.map((r,i)=>`<tr><td>${i<3?`<span class="medal">${MED[i]}</span>`:"#"+(i+1)}</td><td><b>${esc(r.name)}</b></td><td class="mono">${esc(short(r.address))}</td><td class="gold"><b>${r.balance} MAX</b></td><td>${r.mined}</td></tr>`).join("")||`<tr><td colspan=5 class="empty">Mine a block to get on the board!</td></tr>`;
+  $("t-target").textContent=st.target+"s";$("t-every").textContent=st.every;$("t-range").textContent=S.limits.min+"–"+S.limits.max;
+  // mining
+  const busy=m.running;$("m-btn").classList.toggle("busy",busy);$("m-btntxt").textContent=busy?"STOP":"MINE";$("logo").classList.toggle("spin",busy);
+  $("minepill").textContent=busy?(m.auto?"Auto-mining…":"Mining…"):"Idle";$("minepill").classList.toggle("live",busy);
+  if(document.activeElement!==$("m-auto"))$("m-auto").checked=m.auto;
+  $("m-status").textContent=busy?`Guessing… ${m.nonce.toLocaleString()} tries`:m.error?"⚠ "+m.error:"Ready to mine";
+  $("m-sub").textContent=busy?`Difficulty ${m.difficulty} · ${(m.now-m.started).toFixed(1)}s · reward to ${m.wallet}`:`Each block pays a reward of ${S.reward} MAX`;
+  $("mi-diff").textContent=busy&&m.difficulty?m.difficulty:st.next;$("mi-nonce").textContent=busy?m.nonce.toLocaleString():"–";$("mi-time").textContent=busy?(m.now-m.started).toFixed(1)+"s":"–";
+  $("mi-target").textContent=st.target+"s";$("mi-rt").textContent="block #"+st.next_retarget+" ("+st.blocks_left+" to go)";$("mi-count").textContent=m.count;
+  $("mi-last").textContent=m.last?`#${m.last.index} in ${m.last.seconds}s (${m.last.nonce.toLocaleString()} tries)`:"–";
+  if(m.last&&lastBlock!==null&&m.last.at!==lastBlock){toast(`⛏ Mined block #${m.last.index}! +${S.reward} MAX to ${m.last.wallet}`);if(page==="explorer")loadChain()}
+  if(m.last)lastBlock=m.last.at;else if(lastBlock===null)lastBlock=0;
+}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(c)copy(c.dataset.copy,"Address copied!");const r=e.target.closest("[data-reveal]");if(r){revealName=r.dataset.reveal;openModal("m-reveal");$("r-name").textContent=revealName;$("r-ask").style.display="";$("r-show").style.display="none"}});
+async function refresh(){try{S=await api("/api/state");render()}catch(e){}}
+async function doNew(){const n=$("n-name").value.trim(),p=$("n-pw").value;if(!n)return $("n-err").textContent="Pick a name.";if(p!==$("n-pw2").value)return $("n-err").textContent="Passwords don't match.";
+  try{await api("/api/wallet/new",{name:n,password:p});closeModals();toast("Wallet '"+n+"' created! 🎉");refresh()}catch(e){$("n-err").textContent=e.message}}
+async function doImport(){const n=$("i-name").value.trim(),p=$("i-pw").value;if(!n)return $("i-err").textContent="Pick a name.";if(p!==$("i-pw2").value)return $("i-err").textContent="Passwords don't match.";
+  try{await api("/api/wallet/import",{name:n,key:$("i-key").value,password:p});closeModals();toast("Wallet '"+n+"' imported!");refresh()}catch(e){$("i-err").textContent=e.message}}
+async function doReveal(){try{const j=await api("/api/wallet/reveal",{name:revealName,password:$("r-pw").value});$("r-pw").value="";$("r-key").textContent=j.key;$("r-ask").style.display="none";$("r-show").style.display=""}catch(e){$("r-err").textContent=e.message}}
+async function doSend(){const err=$("s-err");err.textContent="";const from=$("s-from").value,to=$("s-to").value.trim(),amt=$("s-amt").value,pw=$("s-pw").value;
+  if(!from)return err.textContent="Create a wallet first.";if(!to)return err.textContent="Who are you sending to?";if(!(+amt>0)||!Number.isInteger(+amt))return err.textContent="Amount must be a whole number above 0.";if(!pw)return err.textContent="Type your wallet password.";
+  $("s-btn").disabled=true;try{await api("/api/send",{from,to,amount:+amt,password:pw});$("s-pw").value="";$("s-amt").value="";toast(`Sent ${amt} MAX to ${to}! Mine a block to confirm it.`);refresh()}catch(e){err.textContent=e.message;toast(e.message,true)}finally{$("s-btn").disabled=false}}
+async function toggleMine(){try{if(S&&S.miner.running){await api("/api/mine/stop",{now:true});toast("Mining stopped")}else{const w=$("m-wallet").value;if(!w)return toast("Create a wallet first",true);await api("/api/mine",{wallet:w,auto:$("m-auto").checked})}refresh()}catch(e){toast(e.message,true)}}
+async function autoChanged(){if(S&&S.miner.running){try{if($("m-auto").checked)await api("/api/mine",{wallet:S.miner.wallet,auto:true});else await api("/api/mine/stop",{});refresh()}catch(e){toast(e.message,true)}}}
+async function loadChain(){try{const j=await api("/api/chain");const open=new Set([...document.querySelectorAll(".blk.open")].map(b=>b.dataset.i));
+  $("x-list").innerHTML=j.blocks.map(b=>`<div class="blk${open.has(String(b.index))?" open":""}" data-i="${b.index}"><div class="hd" onclick="this.parentNode.classList.toggle('open')"><span class="num">#${b.index}</span><span class="mono" style="flex:1">${esc(short(b.hash))}</span><span class="tag">diff ${b.difficulty}</span><span class="tag g">${b.txs.length} tx</span><span style="color:var(--mut);font-size:13px;min-width:70px">${ago(b.time)}</span></div>
+  <div class="bd"><div style="font-size:13px;color:var(--mut);line-height:1.9">Hash: <span class="mono">${esc(b.hash)}</span><br>Previous: <span class="mono">${esc(b.prev)}</span><br>Nonce: ${b.nonce.toLocaleString()} · Time: ${new Date(b.time*1000).toLocaleString()}</div>
+  ${b.txs.length?`<table style="margin-top:8px"><thead><tr><th>From</th><th>To</th><th>Amount</th></tr></thead>${b.txs.map(t=>`<tr><td title="${esc(t.from_addr)}">${esc(t.from)}</td><td title="${esc(t.to_addr)}">${esc(t.to)}</td><td class="gold"><b>${t.amount} MAX</b></td></tr>`).join("")}</table>`:`<div class="empty">Genesis block: the very first page of the notebook</div>`}</div></div>`).join("")}catch(e){toast(e.message,true)}}
+async function doValidate(){try{const j=await api("/api/validate",{});$("x-valid").textContent=(j.ok?"✅ ":"❌ ")+j.message;$("x-valid").style.color=j.ok?"var(--ok)":"var(--bad)";toast(j.message,!j.ok)}catch(e){toast(e.message,true)}}
+route();refresh();setInterval(refresh,1000);
+</script></body></html>
