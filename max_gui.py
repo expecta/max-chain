@@ -106,11 +106,12 @@ class App(tk.Tk):
         self.m_who = ttk.Combobox(f, state="readonly", width=30); self.m_who.pack(anchor="w", pady=6)
         self.m_btn = ttk.Button(f, text=f"⛏  Mine a block (+{M.REWARD} MAX)", command=self.do_mine); self.m_btn.pack(anchor="w", pady=6)
         self.m_bar = ttk.Progressbar(f, mode="indeterminate", length=400); self.m_bar.pack(anchor="w", pady=6)
-        self.m_msg = ttk.Label(f, text=f"Difficulty: {M.DIFFICULTY} zeros"); self.m_msg.pack(anchor="w")
+        self.m_msg = ttk.Label(f, text=""); self.m_msg.pack(anchor="w")
+        self.m_stats = ttk.Label(f, text="", foreground=MUTED, justify="left"); self.m_stats.pack(anchor="w", pady=10)
     def do_mine(self):
         who = self.m_who.get()
         if not who: return self.err("Pick a wallet to get the reward.")
-        self.m_btn.state(["disabled"]); self.m_bar.start(12); self.m_msg.config(text="Guessing numbers... ⛏")
+        self.m_btn.state(["disabled"]); self.m_bar.start(12); self.m_msg.config(text=f"Guessing numbers... ⛏ (difficulty {M.stats(M.load())['next']})")
         def work():
             t0 = time.time()
             try: b = M.mine(who); msg = f"Mined block #{b['index']} in {time.time()-t0:.1f}s (nonce {b['nonce']}) +{M.REWARD} MAX to {who}!"
@@ -124,7 +125,8 @@ class App(tk.Tk):
         bar = ttk.Frame(f); bar.pack(fill="x", pady=(0, 8))
         ttk.Button(bar, text="Validate chain", command=self.do_validate).pack(side="left")
         self.v_msg = ttk.Label(bar, text=""); self.v_msg.pack(side="left", padx=12)
-        self.bt = self.tree(f, ("#", "Hash", "Prev", "Nonce", "Txs"), (40, 260, 260, 80, 60)); self.bt.pack(fill="both", expand=True)
+        self.b_stats = ttk.Label(f, text="", foreground=MUTED, justify="left"); self.b_stats.pack(anchor="w", pady=(0, 8))
+        self.bt = self.tree(f, ("#", "Diff", "Hash", "Prev", "Nonce", "Txs"), (40, 50, 250, 250, 80, 50)); self.bt.pack(fill="both", expand=True)
     def do_validate(self):
         ok, msg = M.validate(M.load()); self.v_msg.config(text=("✅ " if ok else "❌ ") + msg, foreground="#6f6" if ok else "#f66")
 
@@ -133,14 +135,17 @@ class App(tk.Tk):
 
     def say(self, t): self.status.config(text=t)
     def refresh(self):
-        d = M.load(); names = self.names()
+        try: d = M.load()
+        except M.MaxError as e: self.err(e); return
+        names = self.names(); st = M.stats_text(d)
+        self.m_stats.config(text=st); self.b_stats.config(text=st)
         self.wt.delete(*self.wt.get_children())
         for w in M.list_wallets(): self.wt.insert("", "end", values=(w["name"], f"{M.balance(d, w['address'], False)} MAX", w["address"]))
         for cb in (self.s_from, self.m_who):
             cb["values"] = names
             if cb.get() not in names: cb.set(names[0] if names else "")
         self.bt.delete(*self.bt.get_children())
-        for b in reversed(d["chain"]): self.bt.insert("", "end", values=(b["index"], b["hash"][:28] + "…", b["prev"][:28] + "…", b["nonce"], len(b["txs"])))
+        for b in reversed(d["chain"]): self.bt.insert("", "end", values=(b["index"], b["difficulty"], b["hash"][:28] + "…", b["prev"][:28] + "…", b["nonce"], len(b["txs"])))
         self.lt.delete(*self.lt.get_children())
         for i, (n, a, bal, m) in enumerate(M.leaderboard(d)):
             self.lt.insert("", "end", values=(M.MEDALS[i] if i < 3 else f"#{i+1}", n, a[:20] + "…", f"{bal} MAX", m))

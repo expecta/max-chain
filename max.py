@@ -6,7 +6,10 @@ from cryptography.hazmat.primitives import serialization as S
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHAIN_FILE = os.path.join(HERE, "chain.json")
 WALLET_DIR = os.path.join(HERE, "wallets")
-DIFFICULTY = int(os.environ.get("MAX_DIFFICULTY", "4"))
+START_DIFFICULTY = int(os.environ.get("MAX_DIFFICULTY", "4"))   # used only when a new chain is made
+TARGET_SECONDS = int(os.environ.get("MAX_TARGET", "30"))       # wanted time per block
+RETARGET_EVERY = int(os.environ.get("MAX_RETARGET", "10"))     # check speed every N blocks
+MIN_DIFF, MAX_DIFF = 3, 7
 REWARD = 50
 
 def sha(s): return hashlib.sha256(s.encode()).hexdigest()
@@ -89,17 +92,52 @@ def verify_tx(tx):
 # ---------- blocks / chain ----------
 def block_hash(b): return sha(json.dumps({k: b[k] for k in ("index","time","txs","prev","nonce")}, sort_keys=True))
 
-def mine_block(index, txs, prev):
-    b = {"index": index, "time": time.time(), "txs": txs, "prev": prev, "nonce": 0}
-    target = "0" * DIFFICULTY
+def block_hash(b):
+    return sha(json.dumps({k: b[k] for k in ("index","time","txs","prev","nonce","difficulty")}, sort_keys=True))
+
+def rules(chain):
+    """Chain settings live in the genesis block so everyone uses the same rules."""
+    g = chain[0]
+    return g.get("target", 30), g.get("retarget", 10)
+
+def expected_difficulty(chain, index):
+    """The difficulty block #index MUST have, based on the blocks before it."""
+    if index == 0: return chain[0]["difficulty"]
+    prev = chain[index - 1]["difficulty"]
+    target, n = rules(chain)
+    if index % n != 0 or index < n: return prev
+    took = chain[index - 1]["time"] - chain[index - n]["time"]   # time for the last n-1 gaps
+    want = target * (n - 1)
+    if took < want / 2: return min(MAX_DIFF, prev + 1)   # way too fast -> harder
+    if took > want * 2: return max(MIN_DIFF, prev - 1)   # way too slow -> easier
+    return prev
+
+def stats(d):
+    c = d["chain"]; target, n = rules(c); nxt = len(c)
+    recent = c[max(1, nxt - n):]
+    avg = (recent[-1]["time"] - recent[0]["time"]) / (len(recent) - 1) if len(recent) > 1 else None
+    nr = ((nxt // n) + (0 if nxt % n == 0 and nxt >= n else 1)) * n
+    return {"height": nxt - 1, "current": c[-1]["difficulty"], "next": expected_difficulty(c, nxt),
+            "target": target, "every": n, "next_retarget": nr, "blocks_left": nr - nxt, "avg": avg}
+
+def mine_block(index, txs, prev, difficulty, extra=None):
+    b = {"index": index, "time": time.time(), "txs": txs, "prev": prev, "nonce": 0, "difficulty": difficulty}
+    if extra: b.update(extra)
+    want = "0" * difficulty
     while True:
         h = block_hash(b)
-        if h.startswith(target): b["hash"] = h; b["difficulty"] = DIFFICULTY; return b
+        if h.startswith(want): b["hash"] = h; return b
         b["nonce"] += 1
 
 def load():
-    if os.path.exists(CHAIN_FILE): return json.load(open(CHAIN_FILE))
-    data = {"chain": [mine_block(0, [], "0" * 64)], "pending": []}  # genesis block
+    if os.path.exists(CHAIN_FILE):
+        d = json.load(open(CHAIN_FILE))
+        if "target" not in d["chain"][0]:
+            raise MaxError("This chain.json is from an older Max version. Delete chain.json to start a new chain (wallets are fine).")
+        return d
+    g = mine_block(0, [], "0" * 64, START_DIFFICULTY, {"target": TARGET_SECONDS, "retarget": RETARGET_EVERY})
+    g["hash"] = block_hash(g)
+    data = {"chain": [g], "pending": []}  # genesis block
     save(data); return data
 
 def save(d): json.dump(d, open(CHAIN_FILE, "w"), indent=2)
@@ -116,6 +154,7 @@ def validate(d):
     seen = {}
     for i, b in enumerate(d["chain"]):
         if block_hash(b) != b["hash"]: return False, f"block {i}: hash doesn't match contents (tampered!)"
+        if b["difficulty"] != expected_difficulty(d["chain"], i): return False, f"block {i}: wrong difficulty {b['difficulty']} (should be {expected_difficulty(d['chain'], i)})"
         if not b["hash"].startswith("0" * b["difficulty"]): return False, f"block {i}: not enough proof-of-work"
         if i and b["prev"] != d["chain"][i-1]["hash"]: return False, f"block {i}: broken link to previous block"
         rewards = 0
@@ -142,7 +181,7 @@ def send(from_name, password, to, amount):
 def mine(miner_name):
     w = load_wallet(miner_name); d = load()
     txs = [t for t in d["pending"] if verify_tx(t)] + [{"sender": "REWARD", "to": w["address"], "amount": REWARD, "time": time.time(), "signature": ""}]
-    b = mine_block(len(d["chain"]), txs, d["chain"][-1]["hash"])
+    b = mine_block(len(d["chain"]), txs, d["chain"][-1]["hash"], expected_difficulty(d["chain"], len(d["chain"])))
     d["chain"].append(b); d["pending"] = []; save(d); return b
 
 # ---------- leaderboard ----------
@@ -188,9 +227,16 @@ USAGE = """Max chain (learning project - NOT real money)
   python max.py balance NAME
   python max.py send FROM_NAME TO_NAME_OR_ADDRESS AMOUNT
   python max.py mine MINER_NAME
-  python max.py chain | validate | leaderboard
+  python max.py chain | stats | validate | leaderboard
   python max.py explorer [PORT]
+New chain settings: MAX_TARGET (seconds), MAX_RETARGET (blocks), MAX_DIFFICULTY (start).
 Passwords are asked for privately. For scripts you can set MAX_PASSWORD."""
+
+def stats_text(d):
+    s = stats(d); avg = f"{s['avg']:.1f}s" if s["avg"] is not None else "n/a"
+    return (f"Height: {s['height']} | Difficulty now: {s['current']} | Next block: {s['next']}\n"
+            f"Target: {s['target']}s per block | Recent average: {avg}\n"
+            f"Next retarget at block #{s['next_retarget']} ({s['blocks_left']} blocks to go, checks every {s['every']})")
 
 def ask_password(confirm=False):
     if os.environ.get("MAX_PASSWORD"): return os.environ["MAX_PASSWORD"]
@@ -221,10 +267,14 @@ def main(a):
     elif cmd == "mine":
         need(1); t0 = time.time(); b = mine(a[1])
         print(f"Mined block #{b['index']} in {time.time()-t0:.2f}s nonce={b['nonce']} hash={b['hash'][:20]}... ({len(b['txs'])} txs, +{REWARD} MAX to {a[1]})")
+    elif cmd == "stats":
+        print(stats_text(load()))
     elif cmd == "chain":
-        for b in load()["chain"]:
-            print(f"#{b['index']} hash={b['hash'][:16]}... prev={b['prev'][:16]}... nonce={b['nonce']}")
+        d = load()
+        for b in d["chain"]:
+            print(f"#{b['index']} diff={b['difficulty']} hash={b['hash'][:16]}... prev={b['prev'][:16]}... nonce={b['nonce']}")
             for t in b["txs"]: print(f"    {t['sender'][:10]} -> {t['to'][:10]} : {t['amount']} MAX")
+        print(stats_text(d))
     elif cmd == "validate":
         ok, msg = validate(load()); print(msg); sys.exit(0 if ok else 1)
     elif cmd == "leaderboard":
