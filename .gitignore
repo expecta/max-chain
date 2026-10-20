@@ -1,0 +1,4 @@
+wallets/
+chain.json
+__pycache__/
+*.pyc
