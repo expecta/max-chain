@@ -104,7 +104,7 @@ class App(tk.Tk):
     def build_mine(self, f):
         ttk.Label(f, text="Reward goes to").pack(anchor="w")
         self.m_who = ttk.Combobox(f, state="readonly", width=30); self.m_who.pack(anchor="w", pady=6)
-        self.m_btn = ttk.Button(f, text=f"⛏  Mine a block (+{M.REWARD} MAX)", command=self.do_mine); self.m_btn.pack(anchor="w", pady=6)
+        self.m_btn = ttk.Button(f, text=f"⛏  Mine a block (earn MAX)", command=self.do_mine); self.m_btn.pack(anchor="w", pady=6)
         self.m_bar = ttk.Progressbar(f, mode="indeterminate", length=400); self.m_bar.pack(anchor="w", pady=6)
         self.m_msg = ttk.Label(f, text=""); self.m_msg.pack(anchor="w")
         self.m_stats = ttk.Label(f, text="", foreground=MUTED, justify="left"); self.m_stats.pack(anchor="w", pady=10)
@@ -114,7 +114,7 @@ class App(tk.Tk):
         self.m_btn.state(["disabled"]); self.m_bar.start(12); self.m_msg.config(text=f"Guessing numbers... ⛏ (difficulty {M.stats(M.load())['next']})")
         def work():
             t0 = time.time()
-            try: b = M.mine(who); msg = f"Mined block #{b['index']} in {time.time()-t0:.1f}s (nonce {b['nonce']}) +{M.REWARD} MAX to {who}!"
+            try: b = M.mine(who); msg = f"Mined block #{b['index']} in {time.time()-t0:.1f}s (nonce {b['nonce']}) +{b['txs'][-1]['amount']} MAX to {who}!"
             except Exception as e: msg = f"Error: {e}"
             self.after(0, lambda: self.mine_done(msg))
         threading.Thread(target=work, daemon=True).start()

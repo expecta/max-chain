@@ -94,9 +94,11 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33
   <a href="#wallets" data-p="wallets"><span class="ico">👛</span>Wallets</a>
   <a href="#send" data-p="send"><span class="ico">➤</span>Send</a>
   <a href="#mine" data-p="mine"><span class="ico">⛏</span>Mine</a>
+  <a href="#mempool" data-p="mempool"><span class="ico">⏳</span>Mempool <span class="tag g" id="nav-mem" style="margin-left:auto">0</span></a>
+  <a href="#network" data-p="network"><span class="ico">🌐</span>Network <span class="tag" id="nav-net" style="margin-left:auto">0</span></a>
   <a href="#explorer" data-p="explorer"><span class="ico">⛓</span>Explorer</a>
   <a href="#leaderboard" data-p="leaderboard"><span class="ico">🏆</span>Leaderboard</a>
-  <a href="#stats" data-p="stats"><span class="ico">⚙</span>Stats</a>
+  <a href="#stats" data-p="stats"><span class="ico">⚙</span>Settings</a>
   <div class="foot">MAX is a learning project.<br>It is <b>not real money</b> and only lives on this computer.</div>
 </nav>
 <main>
@@ -105,7 +107,7 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33
 
 <section id="p-dashboard">
   <div class="grid g4">
-    <div class="card stat"><div class="k">Total supply</div><div class="v gold" id="d-supply">–</div><div class="s">MAX ever mined</div></div>
+    <div class="card stat"><div class="k">Total supply</div><div class="v gold" id="d-supply">–</div><div class="s" id="d-supplys">of 21,000,000 max</div><div class="bar"><i id="d-supbar" style="width:0"></i></div></div>
     <div class="card stat"><div class="k">Block height</div><div class="v" id="d-height">–</div><div class="s" id="d-pending"></div></div>
     <div class="card stat"><div class="k">Difficulty</div><div class="v blue" id="d-diff">–</div><div class="s" id="d-diffs"></div></div>
     <div class="card stat"><div class="k">Avg block time</div><div class="v" id="d-avg">–</div><div class="s" id="d-target"></div></div>
@@ -113,7 +115,9 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33
   <div class="grid g2" style="margin-top:18px">
     <div class="card"><h2>Recent blocks</h2><table><thead><tr><th>#</th><th>Hash</th><th>Diff</th><th>Txs</th><th>When</th></tr></thead><tbody id="d-recent"></tbody></table></div>
     <div class="card"><h2>Next retarget</h2><div class="stat"><div class="v" id="d-rt">–</div><div class="s" id="d-rts"></div></div><div class="bar"><i id="d-rtbar" style="width:0"></i></div>
-      <h2 style="margin-top:26px">Top miners</h2><div id="d-top"></div>
+      <h2 style="margin-top:22px">Block reward & halving</h2><div class="stat"><div class="v gold" id="d-reward">–</div><div class="s" id="d-halv"></div></div><div class="bar"><i id="d-hbar" style="width:0"></i></div>
+      <h2 style="margin-top:22px">Network</h2><div id="d-net" style="color:var(--mut);font-size:14px"></div>
+      <h2 style="margin-top:22px">Top miners</h2><div id="d-top"></div>
       <div class="row" style="margin-top:20px"><a class="btn" href="#mine">⛏ Start mining</a><a class="btn ghost" href="#send">Send MAX</a></div></div>
   </div>
 </section>
@@ -129,10 +133,11 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33
     <label>From wallet</label><select id="s-from"></select>
     <label>To (wallet name or 64-character address)</label><input id="s-to" placeholder="bob or 3f9a…" list="s-names"><datalist id="s-names"></datalist>
     <label>Amount</label><input id="s-amt" type="number" min="1" step="1" placeholder="10">
+    <label>Fee (optional, paid to the miner — higher fee = picked first)</label><input id="s-fee" type="number" min="0" step="1" placeholder="0">
     <label>Wallet password</label><input id="s-pw" type="password" autocomplete="off">
     <div class="err" id="s-err"></div>
     <button class="btn blue" id="s-btn" onclick="doSend()">Send ➤</button>
-  </div><div class="card"><h2>Waiting to be mined</h2><div id="s-pending"></div>
+  </div><div class="card"><h2>Waiting to be mined (mempool)</h2><div id="s-pending"></div>
     <p style="color:var(--mut);font-size:13px">Payments wait in line until someone mines the next block. Then they're locked into the chain forever.</p></div></div>
 </section>
 
@@ -140,7 +145,7 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33
   <div class="grid g2"><div class="card minewrap">
     <button class="minebtn" id="m-btn" onclick="toggleMine()"><span class="em">⛏</span><span id="m-btntxt">MINE</span></button>
     <div style="margin-top:22px;font-size:18px;font-weight:700" id="m-status">Ready to mine</div>
-    <div style="color:var(--mut);margin-top:6px" id="m-sub">Each block pays a reward of 50 MAX</div>
+    <div style="color:var(--mut);margin-top:6px" id="m-sub">&nbsp;</div>
     <div class="row" style="margin-top:22px;justify-content:center"><div style="width:220px"><select id="m-wallet"></select></div>
       <label class="switch"><input type="checkbox" id="m-auto" onchange="autoChanged()"><i></i>Auto-mine</label></div>
   </div><div class="card"><h2>Mining info</h2>
@@ -153,6 +158,25 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33
     <tr><td>Blocks mined this session</td><td id="mi-count">0</td></tr>
     <tr><td>Last block</td><td id="mi-last">–</td></tr></tbody></table>
     <p style="color:var(--mut);font-size:13px">Mining = guessing numbers until the block's fingerprint (hash) starts with enough zeros. More zeros = harder puzzle.</p></div></div>
+</section>
+
+<section id="p-mempool"><div class="card"><h2>Mempool: payments waiting for a miner</h2>
+  <p style="color:var(--mut);font-size:13px;margin-top:-6px">Every node keeps a waiting room of signed payments. Miners grab them (biggest fee first) and the fees go to whoever mines the block. Each payment has a number (nonce) so it can only be used once.</p>
+  <table><thead><tr><th>From</th><th>To</th><th>Amount</th><th>Fee</th><th>Nonce</th><th>Sent</th></tr></thead><tbody id="mp-body"></tbody></table></div></section>
+
+<section id="p-network">
+  <div class="grid g4">
+    <div class="card stat"><div class="k">Node height</div><div class="v gold" id="n-height">–</div><div class="s" id="n-tip"></div></div>
+    <div class="card stat"><div class="k">Peers online</div><div class="v blue" id="n-peers">–</div><div class="s" id="n-peerss"></div></div>
+    <div class="card stat"><div class="k">Sync status</div><div class="v" id="n-sync" style="font-size:22px">–</div><div class="s" id="n-last"></div></div>
+    <div class="card stat"><div class="k">Your node address</div><div class="v mono" id="n-me" style="font-size:16px">–</div><div class="s" id="n-pub"></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:18px"><div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Peers</h2><button class="btn sm blue" onclick="doSync()">⟳ Sync now</button></div>
+    <table style="margin-top:10px"><thead><tr><th>Address</th><th>Status</th><th>Height</th><th>Last seen</th><th></th></tr></thead><tbody id="n-list"></tbody></table>
+    <div class="row" style="margin-top:16px"><div style="flex:1"><input id="n-add" placeholder="friend's node, e.g. 192.168.1.20:8766"></div><button class="btn" onclick="doAddPeer()">＋ Add peer</button></div>
+    <div class="err" id="n-err"></div></div>
+    <div class="card"><h2>Activity</h2><div id="n-log" style="font-size:13px;color:var(--mut);line-height:1.8;max-height:360px;overflow:auto"></div>
+    <p style="color:var(--mut);font-size:12px">Longest valid chain wins: if a friend's chain has more total work, your node checks every block and switches to it.</p></div></div>
 </section>
 
 <section id="p-explorer">
@@ -171,6 +195,8 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2f8cff33
   <div class="card" style="margin-top:18px"><h2>How difficulty works</h2>
     <p style="color:var(--mut);line-height:1.7">Every few blocks, Max checks how fast blocks were made. Way too fast (less than half the target time)? The puzzle gets one zero harder. Way too slow (more than double)? One zero easier. These rules are saved in the very first block, and the validator checks every block follows them, so nobody can cheat.</p>
     <p style="color:var(--mut);line-height:1.7">Rules for a new chain can be changed with <span class="mono">MAX_TARGET</span>, <span class="mono">MAX_RETARGET</span> and <span class="mono">MAX_DIFFICULTY</span> before the first start.</p>
+    <h2 style="margin-top:20px">Money rules</h2><p style="color:var(--mut);line-height:1.7" id="t-money"></p>
+    <h2 style="margin-top:20px">Playing with others</h2><p style="color:var(--mut);line-height:1.7">Add a friend's node on the <a href="#network">Network</a> page. To let friends connect to <i>you</i>, start the app with <span class="mono">--public</span> (see README). Only do that with a parent's OK.</p>
     <div class="warn">MAX is a learning project. It is not a real cryptocurrency, has no value and can't be traded.</div></div>
 </section>
 </main>
@@ -201,7 +227,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 const short=a=>a.length>20?a.slice(0,10)+"…"+a.slice(-6):a;
 const ago=t=>{const s=Math.max(0,Date.now()/1000-t);return s<60?Math.floor(s)+"s ago":s<3600?Math.floor(s/60)+"m ago":Math.floor(s/3600)+"h ago"};
 const MED=["🥇","🥈","🥉"];
-const TITLES={dashboard:["Dashboard","Your Max chain at a glance"],wallets:["Wallets","Your password-locked wallets"],send:["Send","Pay MAX to anyone"],mine:["Mine","Solve puzzles, earn 50 MAX per block"],explorer:["Explorer","Every block ever made"],leaderboard:["Leaderboard","Who has the most MAX?"],stats:["Stats & Settings","How the chain works"]};
+const TITLES={dashboard:["Dashboard","Your Max chain at a glance"],wallets:["Wallets","Your password-locked wallets"],send:["Send","Pay MAX to anyone"],mine:["Mine","Solve puzzles, earn 50 MAX per block"],explorer:["Explorer","Every block ever made"],leaderboard:["Leaderboard","Who has the most MAX?"],stats:["Settings","Rules of the Max network"],mempool:["Mempool","Payments waiting to be mined"],network:["Network","Your node and its peers"]};
 let S=null,page="dashboard",revealName=null,lastBlock=null;
 function toast(msg,bad){const t=document.createElement("div");t.className="toast"+(bad?" bad":"");t.textContent=msg;$("toasts").appendChild(t);setTimeout(()=>{t.style.transition=".4s";t.style.opacity=0;setTimeout(()=>t.remove(),400)},3500)}
 async function api(path,body){const r=await fetch(path,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{});const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||"Request failed");return j}
@@ -210,31 +236,36 @@ function openModal(id){document.querySelectorAll(".modal input").forEach(i=>i.va
 function closeModals(){document.querySelectorAll(".modal").forEach(m=>m.classList.remove("on"));$("r-key").textContent="";document.querySelectorAll(".modal input[type=password]").forEach(i=>i.value="")}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModals()});
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModals()}));
-function route(){page=(location.hash||"#dashboard").slice(1);if(!TITLES[page])page="dashboard";document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id==="p-"+page));document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.p===page));$("title").textContent=TITLES[page][0];$("subtitle").textContent=TITLES[page][1];if(page==="explorer")loadChain();render()}
+function route(){page=(location.hash||"#dashboard").slice(1);if(!TITLES[page])page="dashboard";document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id==="p-"+page));document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.p===page));$("title").textContent=TITLES[page][0];$("subtitle").textContent=TITLES[page][1];if(page==="explorer")loadChain();if(page==="network")loadNet();render()}
 window.addEventListener("hashchange",route);
 function fillSelect(sel,names){const v=sel.value;sel.innerHTML=names.length?names.map(n=>`<option>${esc(n)}</option>`).join(""):"<option value=''>No wallets yet</option>";if(names.includes(v))sel.value=v}
 function render(){if(!S)return;const st=S.stats,m=S.miner,names=S.wallets.map(w=>w.name);
-  $("d-supply").textContent=S.supply.toLocaleString();$("d-height").textContent=st.height;$("d-pending").textContent=S.pending.length+" payment(s) waiting";
+  $("d-supply").textContent=S.supply.toLocaleString();$("d-supplys").textContent="of "+st.max_supply.toLocaleString()+" max ("+(100*S.supply/st.max_supply).toFixed(4)+"%)";$("d-supbar").style.width=Math.max(1,100*S.supply/st.max_supply)+"%";
+  $("d-reward").textContent=st.reward+" MAX";const hb=st.halving_every-(st.next_halving-(st.height+1));$("d-halv").textContent="per block · halves at block #"+st.next_halving+" ("+(st.next_halving-st.height-1)+" to go, halvings so far: "+st.halvings+")";$("d-hbar").style.width=(100*hb/st.halving_every)+"%";
+  $("d-net").innerHTML=`${S.net.online}/${S.net.peers} peers online · ${esc(S.net.status)} · ${S.net.public?"<span class=gold>public node</span>":"local node"}`;
+  $("nav-mem").textContent=S.pending.length;$("nav-net").textContent=S.net.online;
+  $("mp-body").innerHTML=S.pending.map(t=>`<tr><td>${esc(t.from)}</td><td>${esc(t.to)}</td><td class="gold"><b>${t.amount} MAX</b></td><td>${t.fee}</td><td>#${t.nonce}</td><td style="color:var(--mut)">${ago(t.time)}</td></tr>`).join("")||`<tr><td colspan=6 class="empty">The mempool is empty</td></tr>`;
+  $("t-money").innerHTML=`Max supply: <b>${st.max_supply.toLocaleString()} MAX</b>. The block reward starts at 50 MAX and halves every <b>${st.halving_every.toLocaleString()}</b> blocks. Miners also get the fees from the payments they include. Network id <span class="mono">${esc(st.chain_id)}</span>.`;$("d-height").textContent=st.height;$("d-pending").textContent=S.pending.length+" payment(s) waiting";
   $("d-diff").textContent=st.current;$("d-diffs").textContent=st.next!==st.current?"next block: "+st.next:"zeros needed per hash";
   $("d-avg").textContent=st.avg==null?"–":st.avg.toFixed(1)+"s";$("d-target").textContent="target "+st.target+"s";
   $("d-rt").textContent="#"+st.next_retarget;$("d-rts").textContent=st.blocks_left+" blocks to go (every "+st.every+")";$("d-rtbar").style.width=(100*(st.every-st.blocks_left)/st.every)+"%";
   $("d-recent").innerHTML=S.recent.map(b=>`<tr><td class="gold"><b>#${b.index}</b></td><td class="mono">${esc(short(b.hash))}</td><td><span class="tag">${b.difficulty}</span></td><td>${b.txs.length}</td><td style="color:var(--mut)">${ago(b.time)}</td></tr>`).join("");
-  $("d-top").innerHTML=S.leaderboard.slice(0,3).map((r,i)=>`<div class="row" style="justify-content:space-between;padding:6px 0"><span><span class="medal">${MED[i]}</span> ${esc(r.name)}</span><b class="gold">${r.balance} MAX</b></div>`).join("")||`<div class="empty">No miners yet</div>`;
+  $("d-top").innerHTML=S.leaderboard.slice(0,3).map((r,i)=>`<div class="row" style="justify-content:space-between;padding:6px 0"><span><span class="medal">${MED[i]}</span> ${esc(r.name==="?"?short(r.address):r.name)}</span><b class="gold">${r.balance} MAX</b></div>`).join("")||`<div class="empty">No miners yet</div>`;
   $("w-list").innerHTML=S.wallets.map(w=>`<div class="card wcard"><div class="name">👛 ${esc(w.name)}</div><div class="bal">${w.balance} <span style="font-size:16px">MAX</span></div><div style="color:var(--mut);font-size:12px">${w.pending!==w.balance?"incl. pending: "+w.pending+" MAX":"confirmed balance"}</div><div class="addr mono">${esc(w.address)}</div><div class="row"><button class="btn sm blue" data-copy="${esc(w.address)}">Copy address</button><button class="btn sm ghost" data-reveal="${esc(w.name)}">🔒 Private key</button></div></div>`).join("")||`<div class="card empty">No wallets yet. Create one to get started!</div>`;
   fillSelect($("s-from"),names);fillSelect($("m-wallet"),names);$("s-names").innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("");
-  $("s-pending").innerHTML=S.pending.length?`<table>${S.pending.map(t=>`<tr><td>${esc(t.from)} → ${esc(t.to)}</td><td class="gold"><b>${t.amount} MAX</b></td></tr>`).join("")}</table>`:`<div class="empty">Nothing waiting</div>`;
-  $("l-body").innerHTML=S.leaderboard.map((r,i)=>`<tr><td>${i<3?`<span class="medal">${MED[i]}</span>`:"#"+(i+1)}</td><td><b>${esc(r.name)}</b></td><td class="mono">${esc(short(r.address))}</td><td class="gold"><b>${r.balance} MAX</b></td><td>${r.mined}</td></tr>`).join("")||`<tr><td colspan=5 class="empty">Mine a block to get on the board!</td></tr>`;
+  $("s-pending").innerHTML=S.pending.length?`<table>${S.pending.map(t=>`<tr><td>${esc(t.from)} → ${esc(t.to)}</td><td class="gold"><b>${t.amount} MAX</b></td><td style="color:var(--mut)">fee ${t.fee}</td></tr>`).join("")}</table>`:`<div class="empty">Nothing waiting</div>`;
+  $("l-body").innerHTML=S.leaderboard.map((r,i)=>`<tr><td>${i<3?`<span class="medal">${MED[i]}</span>`:"#"+(i+1)}</td><td><b>${esc(r.name==="?"?short(r.address):r.name)}</b></td><td class="mono">${esc(short(r.address))}</td><td class="gold"><b>${r.balance} MAX</b></td><td>${r.mined}</td></tr>`).join("")||`<tr><td colspan=5 class="empty">Mine a block to get on the board!</td></tr>`;
   $("t-target").textContent=st.target+"s";$("t-every").textContent=st.every;$("t-range").textContent=S.limits.min+"–"+S.limits.max;
   // mining
   const busy=m.running;$("m-btn").classList.toggle("busy",busy);$("m-btntxt").textContent=busy?"STOP":"MINE";$("logo").classList.toggle("spin",busy);
   $("minepill").textContent=busy?(m.auto?"Auto-mining…":"Mining…"):"Idle";$("minepill").classList.toggle("live",busy);
   if(document.activeElement!==$("m-auto"))$("m-auto").checked=m.auto;
   $("m-status").textContent=busy?`Guessing… ${m.nonce.toLocaleString()} tries`:m.error?"⚠ "+m.error:"Ready to mine";
-  $("m-sub").textContent=busy?`Difficulty ${m.difficulty} · ${(m.now-m.started).toFixed(1)}s · reward to ${m.wallet}`:`Each block pays a reward of ${S.reward} MAX`;
+  $("m-sub").textContent=busy?`Difficulty ${m.difficulty} · ${(m.now-m.started).toFixed(1)}s · reward to ${m.wallet}`:`Next block pays ${S.reward} MAX + fees (${S.pending.length} payments waiting)`;
   $("mi-diff").textContent=busy&&m.difficulty?m.difficulty:st.next;$("mi-nonce").textContent=busy?m.nonce.toLocaleString():"–";$("mi-time").textContent=busy?(m.now-m.started).toFixed(1)+"s":"–";
   $("mi-target").textContent=st.target+"s";$("mi-rt").textContent="block #"+st.next_retarget+" ("+st.blocks_left+" to go)";$("mi-count").textContent=m.count;
   $("mi-last").textContent=m.last?`#${m.last.index} in ${m.last.seconds}s (${m.last.nonce.toLocaleString()} tries)`:"–";
-  if(m.last&&lastBlock!==null&&m.last.at!==lastBlock){toast(`⛏ Mined block #${m.last.index}! +${S.reward} MAX to ${m.last.wallet}`);if(page==="explorer")loadChain()}
+  if(m.last&&lastBlock!==null&&m.last.at!==lastBlock){toast(`⛏ Mined block #${m.last.index}! +${m.last.reward} MAX to ${m.last.wallet}`);if(page==="explorer")loadChain()}
   if(m.last)lastBlock=m.last.at;else if(lastBlock===null)lastBlock=0;
 }
 document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(c)copy(c.dataset.copy,"Address copied!");const r=e.target.closest("[data-reveal]");if(r){revealName=r.dataset.reveal;openModal("m-reveal");$("r-name").textContent=revealName;$("r-ask").style.display="";$("r-show").style.display="none"}});
@@ -244,15 +275,23 @@ async function doNew(){const n=$("n-name").value.trim(),p=$("n-pw").value;if(!n)
 async function doImport(){const n=$("i-name").value.trim(),p=$("i-pw").value;if(!n)return $("i-err").textContent="Pick a name.";if(p!==$("i-pw2").value)return $("i-err").textContent="Passwords don't match.";
   try{await api("/api/wallet/import",{name:n,key:$("i-key").value,password:p});closeModals();toast("Wallet '"+n+"' imported!");refresh()}catch(e){$("i-err").textContent=e.message}}
 async function doReveal(){try{const j=await api("/api/wallet/reveal",{name:revealName,password:$("r-pw").value});$("r-pw").value="";$("r-key").textContent=j.key;$("r-ask").style.display="none";$("r-show").style.display=""}catch(e){$("r-err").textContent=e.message}}
-async function doSend(){const err=$("s-err");err.textContent="";const from=$("s-from").value,to=$("s-to").value.trim(),amt=$("s-amt").value,pw=$("s-pw").value;
+async function doSend(){const err=$("s-err");err.textContent="";const from=$("s-from").value,to=$("s-to").value.trim(),amt=$("s-amt").value,pw=$("s-pw").value,fee=$("s-fee").value||"0";if(!(+fee>=0)||!Number.isInteger(+fee))return err.textContent="Fee must be a whole number, 0 or more.";
   if(!from)return err.textContent="Create a wallet first.";if(!to)return err.textContent="Who are you sending to?";if(!(+amt>0)||!Number.isInteger(+amt))return err.textContent="Amount must be a whole number above 0.";if(!pw)return err.textContent="Type your wallet password.";
-  $("s-btn").disabled=true;try{await api("/api/send",{from,to,amount:+amt,password:pw});$("s-pw").value="";$("s-amt").value="";toast(`Sent ${amt} MAX to ${to}! Mine a block to confirm it.`);refresh()}catch(e){err.textContent=e.message;toast(e.message,true)}finally{$("s-btn").disabled=false}}
+  $("s-btn").disabled=true;try{await api("/api/send",{from,to,amount:+amt,fee:+fee,password:pw});$("s-pw").value="";$("s-amt").value="";$("s-fee").value="";toast(`Sent ${amt} MAX to ${to} (fee ${fee})! Shared with the network.`);refresh()}catch(e){err.textContent=e.message;toast(e.message,true)}finally{$("s-btn").disabled=false}}
 async function toggleMine(){try{if(S&&S.miner.running){await api("/api/mine/stop",{now:true});toast("Mining stopped")}else{const w=$("m-wallet").value;if(!w)return toast("Create a wallet first",true);await api("/api/mine",{wallet:w,auto:$("m-auto").checked})}refresh()}catch(e){toast(e.message,true)}}
 async function autoChanged(){if(S&&S.miner.running){try{if($("m-auto").checked)await api("/api/mine",{wallet:S.miner.wallet,auto:true});else await api("/api/mine/stop",{});refresh()}catch(e){toast(e.message,true)}}}
 async function loadChain(){try{const j=await api("/api/chain");const open=new Set([...document.querySelectorAll(".blk.open")].map(b=>b.dataset.i));
   $("x-list").innerHTML=j.blocks.map(b=>`<div class="blk${open.has(String(b.index))?" open":""}" data-i="${b.index}"><div class="hd" onclick="this.parentNode.classList.toggle('open')"><span class="num">#${b.index}</span><span class="mono" style="flex:1">${esc(short(b.hash))}</span><span class="tag">diff ${b.difficulty}</span><span class="tag g">${b.txs.length} tx</span><span style="color:var(--mut);font-size:13px;min-width:70px">${ago(b.time)}</span></div>
   <div class="bd"><div style="font-size:13px;color:var(--mut);line-height:1.9">Hash: <span class="mono">${esc(b.hash)}</span><br>Previous: <span class="mono">${esc(b.prev)}</span><br>Nonce: ${b.nonce.toLocaleString()} · Time: ${new Date(b.time*1000).toLocaleString()}</div>
-  ${b.txs.length?`<table style="margin-top:8px"><thead><tr><th>From</th><th>To</th><th>Amount</th></tr></thead>${b.txs.map(t=>`<tr><td title="${esc(t.from_addr)}">${esc(t.from)}</td><td title="${esc(t.to_addr)}">${esc(t.to)}</td><td class="gold"><b>${t.amount} MAX</b></td></tr>`).join("")}</table>`:`<div class="empty">Genesis block: the very first page of the notebook</div>`}</div></div>`).join("")}catch(e){toast(e.message,true)}}
+  ${b.txs.length?`<table style="margin-top:8px"><thead><tr><th>From</th><th>To</th><th>Amount</th><th>Fee</th></tr></thead>${b.txs.map(t=>`<tr><td title="${esc(t.from_addr)}">${esc(t.from)}</td><td title="${esc(t.to_addr)}">${esc(t.to)}</td><td class="gold"><b>${t.amount} MAX</b></td><td style="color:var(--mut)">${t.reward?(t.fee?"incl. "+t.fee+" fees":"–"):t.fee}</td></tr>`).join("")}</table>`:`<div class="empty">Genesis block: the very first page, holding the network rules</div>`}</div></div>`).join("")}catch(e){toast(e.message,true)}}
 async function doValidate(){try{const j=await api("/api/validate",{});$("x-valid").textContent=(j.ok?"✅ ":"❌ ")+j.message;$("x-valid").style.color=j.ok?"var(--ok)":"var(--bad)";toast(j.message,!j.ok)}catch(e){toast(e.message,true)}}
-route();refresh();setInterval(refresh,1000);
+async function loadNet(){try{const n=await api("/api/network");$("n-height").textContent=n.height;$("n-tip").textContent="tip "+n.tip.slice(0,14)+"…";
+  const on=n.peers.filter(p=>p.ok).length;$("n-peers").textContent=on+"/"+n.peers.length;$("n-peerss").textContent="switched chains "+n.sync.switches+"× · rejected "+n.sync.rejected;
+  $("n-sync").textContent=n.sync.status;$("n-last").textContent=n.sync.last?"last sync "+ago(n.sync.last):"";$("n-me").textContent=n.me;$("n-pub").innerHTML=n.public?"<span class=gold>public: others can connect</span>":"local only (127.0.0.1)";
+  $("n-list").innerHTML=n.peers.map(p=>`<tr><td class="mono">${esc(p.addr)}</td><td>${p.ok?'<span class="tag" style="background:#3ddc9722;color:var(--ok)">● online</span>':p.ok===false?`<span class="tag" style="background:#ff5d7322;color:var(--bad)" title="${esc(p.error||"")}">● offline</span>`:'<span class="tag">…</span>'}${p.error&&p.ok?` <span style="color:var(--bad);font-size:12px">${esc(p.error)}</span>`:""}</td><td>${p.height??"–"}</td><td style="color:var(--mut)">${p.seen?ago(p.seen):"never"}</td><td><button class="btn sm ghost" data-rmpeer="${esc(p.addr)}">Remove</button></td></tr>`).join("")||`<tr><td colspan=5 class="empty">No peers yet. Add a friend's node below!</td></tr>`;
+  $("n-log").innerHTML=n.sync.log.map(l=>`<div><span style="color:var(--blue2)">${new Date(l.t*1000).toLocaleTimeString()}</span> ${esc(l.msg)}</div>`).join("")||"Nothing yet"}catch(e){}}
+async function doAddPeer(){$("n-err").textContent="";try{await api("/api/peers/add",{addr:$("n-add").value.trim()});$("n-add").value="";toast("Peer added, syncing…");setTimeout(loadNet,1500)}catch(e){$("n-err").textContent=e.message}}
+async function doSync(){await api("/api/sync",{});toast("Syncing with peers…");setTimeout(loadNet,1500)}
+document.addEventListener("click",async e=>{const r=e.target.closest("[data-rmpeer]");if(r){await api("/api/peers/remove",{addr:r.dataset.rmpeer});toast("Peer removed");loadNet()}});
+route();refresh();setInterval(()=>{refresh();if(page==="network")loadNet()},1000);
 </script></body></html>
